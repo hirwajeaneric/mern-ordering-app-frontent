@@ -9,6 +9,8 @@ import MenuSection from "./MenuSection";
 import ImageSection from "./ImageSection";
 import { Button } from "@/components/ui/button";
 import LoadingButton from "@/components/LoadingButton";
+import { Restaurant } from "@/types";
+import { useEffect } from "react";
 
 const formSchema = z.object({
     restaurantName: z.string({
@@ -41,11 +43,12 @@ const formSchema = z.object({
 type RestaurantFormData = z.infer<typeof formSchema>;
 
 type Props = {
+    restaurant?: Restaurant
     onSave: (restaurantFormData: FormData) => void;
     isLoading: boolean;
 }
 
-const ManageRestaurantForm = ({ onSave, isLoading }: Props) => {
+const ManageRestaurantForm = ({ restaurant, onSave, isLoading }: Props) => {
     const form = useForm<RestaurantFormData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -57,6 +60,13 @@ const ManageRestaurantForm = ({ onSave, isLoading }: Props) => {
         }
     });
 
+    useEffect(() => {
+        if(!restaurant) {
+            return;
+        }
+        form.reset(restaurant);
+    }, [form, restaurant]);
+
     const onSubmit = (formDataJSON: RestaurantFormData) => {
         // TODO - Convert formDataJSON to a new FormData object
         const formData = new FormData();
@@ -64,7 +74,6 @@ const ManageRestaurantForm = ({ onSave, isLoading }: Props) => {
         formData.append("restaurantName", formDataJSON.restaurantName);
         formData.append("city", formDataJSON.city);
         formData.append("country", formDataJSON.country);
-        // formData.append("deliveryPrice", (formDataJSON.deliveryPrice*100).toString());
         formData.append("deliveryPrice", formDataJSON.deliveryPrice.toString());
         formData.append("estimatedDeliveryTime", formDataJSON.estimatedDeliveryTime.toString());
         formDataJSON.cuisines.forEach((cuisine, index) => {
